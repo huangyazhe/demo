@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * HI 雅哲，别忘记写注释哦，认真是一种态度
+ * 测试
  * @author HuangYazhe
  * Date: 2018/12/4
  */

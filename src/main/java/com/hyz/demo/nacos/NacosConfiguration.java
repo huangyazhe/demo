@@ -7,7 +7,7 @@ import com.alibaba.nacos.spring.context.annotation.EnableNacos;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * HI 雅哲，别忘记写注释哦，认真是一种态度
+ * 添加 Nacos 配置
  * @author HuangYazhe
  * Date: 2018/12/3
  */

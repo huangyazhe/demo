@@ -19,7 +19,7 @@ import static com.alibaba.nacos.api.common.Constants.DEFAULT_GROUP;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
- * HI 雅哲，别忘记写注释哦，认真是一种态度
+ * 添加新老接口开关，对新上线业务可以随时降级处理
  * @author HuangYazhe
  * Date: 2018/12/4
  */
