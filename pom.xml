@@ -55,12 +55,12 @@
 		</dependency>
 
 
-		<!-- -->
-		<dependency>
+		<!-- 添加 trace 包 -->
+		<!--<dependency>
 			<groupId>com.hooke</groupId>
 			<artifactId>trace4j-core</artifactId>
 			<version>1.0-SNAPSHOT</version>
-		</dependency>
+		</dependency>-->
 
 
 
@@ -135,6 +135,13 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.16.12</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.60</version>
 		</dependency>
 
 
