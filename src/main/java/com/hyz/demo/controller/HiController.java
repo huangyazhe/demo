@@ -1,7 +1,6 @@
 package com.hyz.demo.controller;
 
 import com.hyz.demo.service.UserService;
-import com.hyz.trace.Trace;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class HiController  {
     @Autowired
     private UserService userService;
 
-    @Trace(processName = "check",startStep = true)
+    //@Trace(processName = "check",startStep = true)
     @RequestMapping( "/hi" )
     @ResponseBody
     public void check(@RequestParam String userId) throws ServletException, IOException {

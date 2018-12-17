@@ -2,7 +2,6 @@ package com.hyz.demo.service;
 
 import com.hyz.demo.domain.UserInfo;
 import com.hyz.demo.rpc.UserRpc;
-import com.hyz.trace.Trace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

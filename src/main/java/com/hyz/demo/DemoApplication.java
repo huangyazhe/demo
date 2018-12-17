@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication
-@ImportResource(locations= {"classpath:spring-applicationContext.xml"})
+//@ImportResource(locations= {"classpath:spring-applicationContext.xml"})
 public class DemoApplication {
 
 	public static void main(String[] args) {
