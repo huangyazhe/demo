@@ -5,10 +5,14 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.encodings.OAEPEncoding;
+import org.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.CipherSpi;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
@@ -43,15 +47,16 @@ public class RSAUtils {
         final Base64.Decoder decoder64 = Base64.getDecoder();
 
         //这里也可以从流中读取，从本地导入
-        String publicInfoStr = "MIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQCqyvJfXtQLoip9olA5Gy3i3wJ73QXzVcHD6levgQlB5IG5D5ya2kxvDUpnhoP7zk4KtFvbKO3Xb0jBQwD09I8KXfeNosZAUkjOvBqXpzsyKQmJhyCQQ0oD/S9qlWV4YTC7yakh8Pcv5tSt6D8ZyP/j2Ei6goILtEH85A/GlLC8ewIBAw==";
+        String publicInfoStr = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBxDSlHWNyQR3PAeJhzcgWgS9iVMtZEzL82lwb7XT2SeaUgN2Sxn9sqi9GxuPua847w7vgUj0xa1zIP3VPlhTPiaoxZ8UTxXKAqnrvTB2aFrlE4PW/yxGF1FuidM2zymzUkQkCBE9qlDjjea3wK5hh5Y9gqDL3rEr6fgYTm2mC0QIDAQAB";
         byte[] publicInfoBytes = decoder64.decode(publicInfoStr);
         ASN1Object pubKeyObj = ASN1Primitive.fromByteArray(publicInfoBytes);
 
         AsymmetricKeyParameter pubKey = PublicKeyFactory.createKey(SubjectPublicKeyInfo.getInstance(pubKeyObj));
         AsymmetricBlockCipher cipher = new RSAEngine();
+        OAEPEncoding oaepEncoding = new OAEPEncoding(cipher);
         cipher.init(true, pubKey);
 
-        byte[] resEncryptData = doEncryptDataStream(data,cipher);
+        byte[] resEncryptData = doEncryptDataStream(data,oaepEncoding);
         System.out.println("密文："+ encoder64.encodeToString(resEncryptData));
 
         return encoder64.encodeToString(resEncryptData);
@@ -67,18 +72,32 @@ public class RSAUtils {
      */
     public static String decryptData(String data) throws IOException, InvalidCipherTextException {
         final Base64.Decoder decoder64 = Base64.getDecoder();
-        AsymmetricBlockCipher cipher = new RSAEngine();
+        AsymmetricBlockCipher cipher = new RSABlindedEngine();
+        OAEPEncoding oaepEncoding = new OAEPEncoding(cipher);
         byte[] encryptDataBytes = decoder64.decode(data);
 
         //解密
-        String priavteKeyInfoStr = "MIICdAIBADANBgkqhkiG9w0BAQEFAASCAl4wggJaAgEAAoGBAKrK8l9e1AuiKn2iUDkbLeLfAnvdBfNVwcPqV6+BCUHkgbkPnJraTG8NSmeGg/vOTgq0W9so7ddvSMFDAPT0jwpd942ixkBSSM68GpenOzIpCYmHIJBDSgP9L2qVZXhhMLvJqSHw9y/m1K3oPxnI/+PYSLqCggu0QfzkD8aUsLx7AgEDAoGAHHcoZTp4rJsHFPBitC8yUHqAaforqI5K9fxj8pWBivtq9C1ExHm3Z9eMZpZrVKJiVx4PTzF8+T02yuCAKNNtLB6t3aIwYZQjjBxkWoodQEux4AdgBvBC7oZuLh00Npq/okbIpfYQUAiEPamRBSd4OT6TgzM4UQ58bxLH/0sihucCQQDuyi0Rf3hi/qWl3f6R9Wda6evNFjLo+AxUzTeuLbjMRsUDUB52PXrbhegqaMH0VDViKRc8m9HkoDVYxlCMUnq3AkEAtxouxCR+dnTga+J52JZJB/RdjcozuMBggc0eN/539GwpHaUftlfU2DVTxHA459pW/qqQEpRTeLctGpl6RY8YXQJBAJ8xc2D/pZdUbm6T/wv475HxR94OzJtQCDiIz8lz0IgvLgI1aaQo/JJZRXGbK/g4I5bGD329Nphqzjsu4F2MUc8CQHoRdILC/vmjQEfsUTsO21qi6Qkxd9CAQFaIvs/++qLyxhPDanmP4zrON9hK0JqRj1RxtWG4N6XPc2cQ/C5fZZMCQBfOyK1GMXMIDgxeVH8/FtCIQNek+zGbPUS0sZqKwzKs8g5aDw8IqO1tMwqy8LQWBtKfqhP8o057A6c0+4NgUn8=";
-        byte[] privateInfoBytes = decoder64.decode(priavteKeyInfoStr);
+        String priavteKeyInfoStr = "MIICeQIBADANBgkqhkiG9w0BAQEFAASCAmMwggJfAgEAAoGBAMHENKUdY3JBHc8B\n"
+                + "4mHNyBaBL2JUy1kTMvzaXBvtdPZJ5pSA3ZLGf2yqL0bG4+5rzjvDu+BSPTFrXMg/\n"
+                + "dU+WFM+JqjFnxRPFcoCqeu9MHZoWuUTg9b/LEYXUW6J0zbPKbNSRCQIET2qUOON5\n"
+                + "rfArmGHlj2CoMvesSvp+BhObaYLRAgMBAAECgYEAji+HHh6Zqe6kjBHq6DAUAoeb\n"
+                + "mMF2Uo/nG2q0qn2uFUiXXiPN8/Wa7cdYV8x816jeNjbkd7CBXPFWrU77q4ILFBQS\n"
+                + "PIWVc11bq22HFlWlwTCs7/g/UR0ekEgrlolZDyxTcWgmY8S2NALxr0uR/TwLya8f\n"
+                + "5YpcCH8P7BEsLtKhv00CQQDxnAfdmRcxn/6WDopVtf/RkzS74L2PSgtVKaHIPnEp\n"
+                + "KXMAXg9uyK7/uklNRUTt2YDDNsK81RBySSpWm6HMQv8vAkEAzU6unylYuUghsNgY\n"
+                + "Tc54RK33oV4ZqKWDmzkOt5S0A08HoDO6jRVzR20f8JnJmXWqPcop1Cue43hh3dYt\n"
+                + "JUsd/wJBALL6RsldMtVMFCfMtaUwoUT6q0HSBhozW5nGsVXJC8LWNZ68DuqeNySx\n"
+                + "NsPK4HjheoUh97gyjXBbysVFnOHXb3kCQQClqo8HyaJZaBYfkFAUQL4VlVeTs836\n"
+                + "owxObb0tb+XOIbBimjs3aw6pnSm/ySi/Fw53a7FTDpvYq6Q1EIU/aZzbAkEAq1mY\n"
+                + "VJ6cv/ek8ZjUL/SxZeJUkQNdksHJlAEbn4/WvY2+qEHI8vO0hZDPkbtZeVRsQG2u\n" + "nICCnuQ4cOg0WE+etg==";
+
+        byte[] privateInfoBytes = org.apache.commons.codec.binary.Base64.decodeBase64(priavteKeyInfoStr);
 
         AsymmetricKeyParameter priKey = PrivateKeyFactory.createKey(privateInfoBytes);
         cipher.init(false, priKey);
-        byte[] decriyptData = doDecriyptDataStream(encryptDataBytes,cipher);
+        byte[] decriyptData = doDecriyptDataStream(encryptDataBytes,oaepEncoding);
 
-        System.out.println("解密后数据：" + new String(decriyptData, "utf-8"));
+        System.out.println(new String(decriyptData,"utf-8"));
 
         return new String(decriyptData, "utf-8");
     }
@@ -156,7 +175,7 @@ public class RSAUtils {
         //第一次耗时会长一些，数据加载的原因
         for (int i = 0; i < 1 ; i++) {
             //GenerateKeyPair();
-            String data = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890adfasfa";
+            String data = "1234567890123456789012345678901234567890112345678901234567890123456789012345678901123456789012345678901234567890123456789011234567890123456789012345678901234567890112345678901234567890123456789012345678901";
             long st = System.currentTimeMillis();
             String encryptData = encryptData(data);
 
@@ -172,6 +191,9 @@ public class RSAUtils {
 
             System.out.println("decryptData: "+decryptData);
         }
+
+        //String data = "YC0pqPc0QoIvgmv4+Vlz58nBIS2XlAIj3bDdqZnEwPJy3GLUllDXCRRI4lqCeGwSwliYu3ncJuA6EP/qXR1rD7nRtJ0ARUp3jLXEclWYU/pzlGqJEVoy0So5YOtpng57CvCuW+mfJ3VeqC/hdfeGsQKpXL6fqySFhx/LE7en9sg=";
+        //String decryptData = decryptData(data);
 
     }
 
